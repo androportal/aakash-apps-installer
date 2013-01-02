@@ -45,6 +45,9 @@ def statusText():
 
 
 def footerText():
+    subprocess.call("sudo adb shell busybox poweroff -f ",\
+                    stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+    print "\n\n -->  Poweroff aakash!!!"
     print "\n\n========================================================================================"
     print "| If you wish to stop this program type 'Control + c' to exit                          |"
     print "| There are more options available, check aakash installer help by typing: aakash -h   |"
@@ -118,6 +121,8 @@ def updateListOfServerDirs():
     return allServerPaths       
 
 def installAPKs():
+    #Remove uninstall if not needed
+    unInstall()
     # converting relative paths to absolute for present user
     fullPathofAPK = []
     list_of_apk_dirs = []
@@ -142,6 +147,9 @@ def installAPKs():
                         sys.exit(0)       
                     else:
                         print "-->  Installed successfully %s\n" %(apks)
+    # Execute wallpaper automatically                        
+    subprocess.call("adb shell am start -a android.intent.action.MAIN -n com.blundell.tutorial/.ui.phone.MainActivity",\
+                    stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
 
 
 def checkAndroidDirExistenceIfNotCreate(path):
@@ -176,7 +184,7 @@ def pushData():
                         print "-->  Can't push file to destination,"
                         print "     please check if you have sufficient space in destination !\n"
                         print "     Quitting application !"
-                        sys.exit(0)
+                    #    sys.exit(0)
                     else:
                         print "-->  Pushed %s to %s successfully \n" %(row[0], row[1])
 
@@ -193,6 +201,7 @@ def macIdLog(mac_addr):
             print "\n-->  ERROR ERROR ERROR !!!"
             print "     MAC Address already present, don't repeat devices,"
             print "     this instance is not updated in csv file\n"
+            #sys.exit(0)
         else:    
             macLog.writerow([mac_addr])
             print "-->  MAC address updated successfully in %s !\n" \
@@ -223,8 +232,8 @@ def checkDeviceMacAddress():
     subprocess.call("adb shell date -s %s" %(time.strftime("%Y%m%d.%H%M%S")),\
                      stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
     print "-->  Fixed system time, but can not fix the time zone.\n" 
-    subprocess.call("adb shell svc wifi disable", 
-		    stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+    subprocess.call("adb shell svc wifi disable", \
+	            stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
     print "-->  Wifi tunrd off\n"	
 
 
@@ -265,10 +274,42 @@ def executeAll(*exceptThese):
 
 def waitForNewDevice():
     # Checking whether the cable is unplugged by waiting for adb response
-    while True:
-        time.sleep(1)
-        if 'unknown' in getStdout(adb_cmd):
-            break
+    subprocess.call("adb wait-for-device",
+                        stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
+    #while True:
+        #time.sleep(1)
+        #if 'unknown' in getStdout(adb_cmd):
+        #    break
+        
+
+# hard coded for this moment, put the list of apks here
+def unInstall():
+    list_of_apks_to_be_uninstalled = [
+    'com.iitb.blender.animation',
+    'com.iitb.promitywifi',
+    'com.iitb.proxymity',
+    'com.org.spokentutorial',
+    'in.ac.iitb.aakash.rc_dualscreen',
+    'in.ac.iitb.aakash.robo',
+    'com.aakash.apps',
+    'com.aakash.lab',
+    'com.aakash.pusthak.launch',
+    'com.aakashdemo.apps',
+    'com.iitb',
+    'com.android.example',
+    'com.blundell.tutorial',
+    'air.AVCMobile'
+    ]
+    for each in list_of_apks_to_be_uninstalled:   
+       if subprocess.call("sudo adb uninstall %s" %(each),\
+                                        stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True):
+           print "-->  Can't uninstall %s, please check if\
+                       device is connected properly\n" %(each)
+           print "Quitting !"       
+       else:
+           print "--> Un-installed successfully %s\n" %(each)
+
+   
 
 
 def  processArgs():
@@ -276,6 +317,7 @@ def  processArgs():
     # All flags are resloved here, '-f' for force install, skipping the server sync
     if '-f' in args:
         executeAll('rsyncWithServer()')
+        waitForNewDevice()
     # Skipping all, will show only mac address    
     elif '-m' in args:
 	while True:
@@ -283,7 +325,7 @@ def  processArgs():
 	    waitForNewDevice()
     # Skip sending huge data again, only installs the apks    
     elif '-a' in args:
-        executeAll('pushData()')
+        executeAll('rsyncWithServer()','pushData()')
     # Quick help on commands    
     elif '-h' in args:
         help()
