@@ -12,7 +12,7 @@ sudo cp help.html /usr/share/aakash/
 echo "Done copying. Now installing curlftpfs and rsync from repositories."
 echo "Check your internet connection if this step fails."
 
-sudo apt-get install curlftpfs rsync
+#sudo apt-get install curlftpfs rsync
 
 
 
