@@ -45,9 +45,11 @@ def statusText():
 
 
 def footerText():
-    subprocess.call("sudo adb shell busybox poweroff -f ",\
+    #subprocess.call("sudo adb shell busybox poweroff -f ",
+    subprocess.call("sudo adb reboot ",\
                     stderr=subprocess.STDOUT, stdout=subprocess.PIPE, shell=True)
-    print "\n\n -->  Poweroff aakash!!!"
+    #print "\n\n -->  Poweroff aakash!!!"
+    print "\n\n -->  Restart aakash!!!"
     print "\n\n========================================================================================"
     print "| If you wish to stop this program type 'Control + c' to exit                          |"
     print "| There are more options available, check aakash installer help by typing: aakash -h   |"
